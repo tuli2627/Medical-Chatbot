@@ -1,0 +1,101 @@
+body {
+  font-family: Arial, sans-serif;
+  background-image: url("bg.jpg"); /* ✅ fixed path (remove \) */
+  background-size: cover;
+  background-position: center;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.chat-container {
+  background-size: cover;
+  background-position: center;
+  padding: 20px;
+  width: 600px;
+  max-width: 90%;
+  border-radius: 15px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.chat-container h1 {
+  color: #ffffff;
+  text-shadow: 1px 1px 3px rgba(0,0,0,0.7);
+  margin-bottom: 15px;
+  font-size: 1.5rem;
+}
+
+.chat-box {
+  border: 3px solid #4949E7;
+  height: 350px;
+  width: 100%;
+  overflow-y: auto;
+  padding: 15px;
+  margin-bottom: 15px;
+  border-radius: 10px;
+  background-color: rgba(255, 255, 255, 0.85);
+}
+
+/* Chat messages */
+.chat-box div {
+  margin-bottom: 12px;
+  padding: 10px 15px;
+  border-radius: 12px;
+  max-width: 75%;
+  clear: both;
+  line-height: 1.4;
+  word-wrap: break-word;
+}
+
+/* User message (right side bubble) */
+.chat-box .user {
+  background-color: #4949E7;
+  color: #fff;
+  float: right;
+  border-bottom-right-radius: 2px;
+}
+
+/* Bot message (left side bubble) */
+.chat-box .bot {
+  background-color: #f1f1f1;
+  color: #000;
+  float: left;
+  border-bottom-left-radius: 2px;
+}
+
+.input-area {
+  display: flex;
+  width: 100%;
+  gap: 10px;
+}
+
+#userInput {
+  flex: 1;
+  padding: 10px;
+  border-radius: 20px;
+  border: 1px solid #ccc;
+  outline: none;
+  font-size: 1rem;
+}
+
+button {
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  padding: 10px 20px;
+  background-color: #4949E7;
+  color: #fff;
+  border: none;
+  border-radius: 20px;
+  transition: 0.3s;
+}
+
+button:hover {
+  background-color: #2f2fa2;
+}
