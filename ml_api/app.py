@@ -1,48 +1,85 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 import pandas as pd
 import os
 
-app = Flask(__name__)
+# ----------------------------
+# Setup paths
+# ----------------------------
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# Path to your CSV file
-DATA_FILE = "disease_dataset.csv"
+# Templates and static folders
+TEMPLATE_DIR = os.path.join(BASE_DIR, "templates")
+STATIC_DIR = os.path.join(BASE_DIR, "static")
 
-# Check if file exists
-if not os.path.exists(DATA_FILE):
-    raise FileNotFoundError(f"{DATA_FILE} not found in ml_api folder.")
+# CSV dataset path (one level above ml_api)
+DATA_PATH = os.path.join(BASE_DIR, "..", "disease_dataset.csv")
 
-# Load dataset
-df = pd.read_csv(DATA_FILE)
+# ----------------------------
+# Initialize Flask app
+# ----------------------------
+app = Flask(__name__, template_folder=TEMPLATE_DIR, static_folder=STATIC_DIR)
 
-# Create a dictionary for quick lookups
-disease_data = {
-    row['disease'].strip().lower(): {
-        'info': row['disease_info'],
-        'medicine': row['medicine']
+# ----------------------------
+# Load dataset and preprocess
+# ----------------------------
+try:
+    df = pd.read_csv(DATA_PATH)
+except FileNotFoundError:
+    raise FileNotFoundError(f"Cannot find CSV at {DATA_PATH}. Please check the path.")
+
+# Convert dataset into dictionary for fast lookup
+disease_db = {}
+for _, row in df.iterrows():
+    key = str(row["symptom"]).strip().lower()
+    disease_db[key] = {
+        "disease": str(row.get("disease", "")),
+        "medicine": str(row.get("medicine", "")),
+        "remedies": str(row.get("remedies", ""))
     }
-    for _, row in df.iterrows()
-}
 
+# ----------------------------
+# Routes
+# ----------------------------
 @app.route("/")
-def home():
-    return "✅ Medical Chatbot API is running! Use /get_medicine?disease=<name> to query."
+def index():
+    """Render chatbot UI."""
+    return render_template("index.html")
 
-@app.route("/get_medicine", methods=["GET"])
-def get_medicine():
-    # Get disease name from query string
-    disease_name = request.args.get("disease", "").strip().lower()
 
-    if not disease_name:
-        return jsonify({"error": "Please provide a disease name in the query string, e.g., /get_medicine?disease=fever"})
+@app.route("/get_disease_info", methods=["POST"])
+def get_disease_info():
+    """Return disease info for given symptom query."""
+    try:
+        data = request.get_json()
+        query = data.get("query", "").strip().lower()
 
-    if disease_name in disease_data:
-        return jsonify({
-            "disease": disease_name,
-            "info": disease_data[disease_name]['info'],
-            "medicine": disease_data[disease_name]['medicine']
-        })
-    else:
-        return jsonify({"error": f"No data found for '{disease_name}'."})
+        found = None
+        # Exact match
+        if query in disease_db:
+            found = disease_db[query]
+        else:
+            # Check if any symptom keyword is in query
+            for key in disease_db:
+                if key in query:
+                    found = disease_db[key]
+                    break
 
+        if found:
+            return jsonify({
+                "found": True,
+                "disease": found["disease"],
+                "medicine": found["medicine"],
+                "remedies": found["remedies"]
+            })
+        else:
+            return jsonify({"found": False})
+
+    except Exception as e:
+        return jsonify({"error": str(e)})
+
+
+# ----------------------------
+# Run app
+# ----------------------------
 if __name__ == "__main__":
     app.run(debug=True)
